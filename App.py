@@ -83,20 +83,20 @@ st.set_page_config(
 
 
 def run():
-    img1 = Image.open('./meta/logo.jpg')
-    img1 = img1.resize((250, 250), )
+    img1 = Image.open('./meta/logo3.jpg')
+    img1 = img1.resize((700, 205), )
     st.image(img1, use_column_width=False)
-    st.title("Movie Recommender System")
+    st.title("FilmFusion")
     st.markdown('''<h4 style='text-align: left; color: #d73b5c;'>* Data is based "IMDB 5000 Movie Dataset"</h4>''',
                 unsafe_allow_html=True)
     genres = ['Action', 'Adventure', 'Animation', 'Biography', 'Comedy', 'Crime', 'Documentary', 'Drama', 'Family',
               'Fantasy', 'Film-Noir', 'Game-Show', 'History', 'Horror', 'Music', 'Musical', 'Mystery', 'News',
               'Reality-TV', 'Romance', 'Sci-Fi', 'Short', 'Sport', 'Thriller', 'War', 'Western']
     movies = [title[0] for title in movie_titles]
-    category = ['--Select--', 'Movie based', 'Genre based']
+    category = ['--Select--', 'By Movie', 'By Genre']
     cat_op = st.selectbox('Select Recommendation Type', category)
     if cat_op == category[0]:
-        st.warning('Please select Recommendation Type!!')
+        st.warning('Please select Recommendation Type!')
     elif cat_op == category[1]:
         select_movie = st.selectbox('Select movie: (Recommendation will be based on this selection)',
                                     ['--Select--'] + movies)
@@ -106,7 +106,7 @@ def run():
             unsafe_allow_html=True)
         if dec == 'No':
             if select_movie == '--Select--':
-                st.warning('Please select Movie!!')
+                st.warning('Please select Movie!')
             else:
                 no_of_reco = st.slider('Number of movies you want Recommended:', min_value=5, max_value=20, step=1)
                 genres = data[movies.index(select_movie)]
@@ -126,7 +126,7 @@ def run():
                     st.markdown('IMDB Rating: ' + str(ratings) + '⭐')
         else:
             if select_movie == '--Select--':
-                st.warning('Please select Movie!!')
+                st.warning('Please select Movie!')
             else:
                 no_of_reco = st.slider('Number of movies you want Recommended:', min_value=5, max_value=20, step=1)
                 genres = data[movies.index(select_movie)]
