@@ -18,7 +18,6 @@ hdr = {
 }
 
 
-
 def movie_poster_fetcher(imdb_link):
     ## Display Movie Poster
     url_data = requests.get(imdb_link, headers=hdr).text
@@ -53,7 +52,6 @@ def get_movie_info(imdb_link):
 
             movie_rating = 'Total Rating count: ' + rating
 
-
             return movie_director, movie_cast, movie_story, movie_rating
         else:
             return 'Data not available', 'Data not available', 'Data not available', 'Rating not available'
@@ -82,7 +80,43 @@ st.set_page_config(
 )
 
 
+def login_form():
+    with st.form(key='login_form'):
+        st.subheader("Log in")
+        st.markdown('<span style="color: blue;">To save movies, please log in:</span>', unsafe_allow_html=True)
+        username = st.text_input('Username')
+        password = st.text_input('Password', type='password')
+        login_button = st.form_submit_button('Log in')
+    return username, password, login_button
+
+
+def signup_form():
+    with st.form(key='signup_form'):
+        st.subheader("Sign in")
+        st.markdown('<span style="color: blue;">Create an account:</span>', unsafe_allow_html=True)
+
+       # st.text('Create an account:')
+        new_username = st.text_input('New Username')
+        new_password = st.text_input('New Password', type='password')
+        signup_button = st.form_submit_button('Sign up')
+    return new_username, new_password, signup_button
+
+
 def run():
+    st.sidebar.title("Account")
+    login_selected = st.sidebar.button("Log in")
+    signup_selected = st.sidebar.button("Sign up")
+
+    if login_selected:
+        username, password, login_button = login_form()
+        if login_button:
+            st.success(f"Logged in as {username}")
+
+    if signup_selected:
+        new_username, new_password, signup_button = signup_form()
+        if signup_button:
+            st.success(f"Account created for {new_username}")
+
     img1 = Image.open('./meta/logo3.jpg')
     img1 = img1.resize((700, 205), )
     st.image(img1, use_column_width=False)
