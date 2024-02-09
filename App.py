@@ -6,6 +6,41 @@ from bs4 import BeautifulSoup
 import requests, io
 import PIL.Image
 from urllib.request import urlopen
+import psycopg2
+
+st.set_page_config(
+    page_title="Movie Recommender System",
+)
+
+
+def add_user_to_database(username, user_password):
+    try:
+        dbname = "filmreco_database"
+        user = "postgres"
+        password = "1A2n3D4r5E6w7666postgres"
+        host = "localhost"
+        port = "5433"
+
+        st.write("Connecting to the db")
+        conn = psycopg2.connect(dbname=dbname, user=user, password=password, host=host, port=port)
+        cur = conn.cursor()
+
+        st.write("Inserting")
+        cur.execute("SELECT MAX(id) FROM users")
+        max_id = cur.fetchone()[0]
+        new_id = max_id + 1 if max_id is not None else 1
+
+        sql = "INSERT INTO users (id, username, password) VALUES (%s, %s, %s)"
+        user_data = (new_id, username, user_password)
+        cur.execute(sql, user_data)
+        conn.commit()
+
+        cur.close()
+        conn.close()
+        st.write("User added successfully.")
+    except psycopg2.Error as e:
+        st.write("Error:", e)
+
 
 with open('./Data/movie_data.json', 'r+', encoding='utf-8') as f:
     data = json.load(f)
@@ -75,11 +110,6 @@ def KNN_Movie_Recommender(test_point, k):
     return table
 
 
-st.set_page_config(
-    page_title="Movie Recommender System",
-)
-
-
 def login_form():
     with st.form(key='login_form'):
         st.subheader("Log in")
@@ -95,7 +125,6 @@ def signup_form():
         st.subheader("Sign in")
         st.markdown('<span style="color: blue;">Create an account:</span>', unsafe_allow_html=True)
 
-       # st.text('Create an account:')
         new_username = st.text_input('New Username')
         new_password = st.text_input('New Password', type='password')
         signup_button = st.form_submit_button('Sign up')
@@ -104,19 +133,17 @@ def signup_form():
 
 def run():
     st.sidebar.title("Account")
-    login_selected = st.sidebar.button("Log in")
-    signup_selected = st.sidebar.button("Sign up")
+    mode = st.sidebar.radio("Choose mode:", ("Log in", "Sign up"))
 
-    if login_selected:
+    if mode == "Log in":
         username, password, login_button = login_form()
         if login_button:
             st.success(f"Logged in as {username}")
-
-    if signup_selected:
+    elif mode == "Sign up":
         new_username, new_password, signup_button = signup_form()
         if signup_button:
+            add_user_to_database(new_username, new_password)
             st.success(f"Account created for {new_username}")
-
     img1 = Image.open('./meta/logo3.jpg')
     img1 = img1.resize((700, 205), )
     st.image(img1, use_column_width=False)
