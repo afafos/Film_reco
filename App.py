@@ -12,6 +12,8 @@ st.set_page_config(
     page_title="Movie Recommender System",
 )
 
+placeholder = st.empty()
+
 
 def add_user_to_database(username, user_password):
     try:
@@ -21,11 +23,11 @@ def add_user_to_database(username, user_password):
         host = "localhost"
         port = "5433"
 
-        st.write("Connecting to the db")
+        # st.write("Connecting to the db")
         conn = psycopg2.connect(dbname=dbname, user=user, password=password, host=host, port=port)
         cur = conn.cursor()
 
-        st.write("Inserting")
+        # st.write("Inserting")
         cur.execute("SELECT MAX(id) FROM users")
         max_id = cur.fetchone()[0]
         new_id = max_id + 1 if max_id is not None else 1
@@ -37,7 +39,7 @@ def add_user_to_database(username, user_password):
 
         cur.close()
         conn.close()
-        st.write("User added successfully.")
+        # st.write("User added successfully.")
     except psycopg2.Error as e:
         st.write("Error:", e)
 
@@ -121,13 +123,15 @@ def login_form():
 
 
 def signup_form():
-    with st.form(key='signup_form'):
+    with placeholder.form(key='signup_form'):
         st.subheader("Sign in")
         st.markdown('<span style="color: blue;">Create an account:</span>', unsafe_allow_html=True)
 
         new_username = st.text_input('New Username')
         new_password = st.text_input('New Password', type='password')
         signup_button = st.form_submit_button('Sign up')
+        if signup_button:
+            placeholder.empty()
     return new_username, new_password, signup_button
 
 
@@ -144,6 +148,7 @@ def run():
         if signup_button:
             add_user_to_database(new_username, new_password)
             st.success(f"Account created for {new_username}")
+
     img1 = Image.open('./meta/logo3.jpg')
     img1 = img1.resize((700, 205), )
     st.image(img1, use_column_width=False)
