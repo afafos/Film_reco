@@ -113,12 +113,14 @@ def KNN_Movie_Recommender(test_point, k):
 
 
 def login_form():
-    with st.form(key='login_form'):
+    with placeholder.form(key='login_form'):
         st.subheader("Log in")
         st.markdown('<span style="color: blue;">To save movies, please log in:</span>', unsafe_allow_html=True)
         username = st.text_input('Username')
         password = st.text_input('Password', type='password')
         login_button = st.form_submit_button('Log in')
+        if login_button:
+            placeholder.empty()
     return username, password, login_button
 
 
@@ -248,9 +250,29 @@ def run():
     mode = st.sidebar.radio("Choose mode:", ("Log in", "Sign up"))
 
     if mode == "Log in":
-        username, password, login_button = login_form()
+        username, user_password, login_button = login_form()
         if login_button:
-            st.success(f"Logged in as {username}")
+            dbname = "filmreco_database"
+            user = "postgres"
+            password = "1A2n3D4r5E6w7666postgres"
+            host = "localhost"
+            port = "5433"
+            conn = psycopg2.connect(dbname=dbname, user=user, password=password, host=host, port=port)
+            cur = conn.cursor()
+            cur.execute("SELECT username FROM users WHERE username = %s AND password = %s", (username, user_password))
+            existing_username = cur.fetchone()
+            cur.close()
+            conn.close()
+            if existing_username:
+                st.success(f"Logged in as {username}")
+                st.sidebar.write(
+                    f"<span style='color: blue; font-weight: bold; font-size: 20px;'>User:</span> <span style='color: "
+                    f"blue; font-weight: bold; font-size: 20px;'>{username}</span>",
+                    unsafe_allow_html=True)
+
+                show_recommendations()
+            else:
+                st.error("Invalid username or password.")
     elif mode == "Sign up":
         new_username, new_password, signup_button = signup_form()
         if signup_button:
@@ -261,7 +283,6 @@ def run():
             port = "5433"
             conn = psycopg2.connect(dbname=dbname, user=user, password=password, host=host, port=port)
             cur = conn.cursor()
-            # Проверяем уникальность имени пользователя
             cur.execute("SELECT username FROM users WHERE username = %s", (new_username,))
             existing_username = cur.fetchone()
             cur.close()
