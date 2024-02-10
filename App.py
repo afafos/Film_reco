@@ -92,8 +92,9 @@ def show_saved_films(username):
 
         if saved_films:
             st.subheader("Saved Films")
-            for film in saved_films[0].split(", "):
-                st.write(film)
+            films = saved_films[0].split(", ")
+            for i, film in enumerate(films, start=1):
+                st.write(f"{i}. {film}")
         else:
             st.write("No saved films found for this user.")
 
@@ -101,6 +102,7 @@ def show_saved_films(username):
         conn.close()
     except psycopg2.Error as e:
         st.error("Error fetching saved films:", e)
+
 
 with open('./Data/movie_data.json', 'r+', encoding='utf-8') as f:
     data = json.load(f)
@@ -255,7 +257,8 @@ def show_recommendations(username):
                     st.markdown(f"({c})[ {movie}]({link})")
 
                     if st.button(f"Save Movie: {movie}"):
-                        save_movie_to_database(username, movie)
+                        movie_name_link = movie + ' ' + link
+                        save_movie_to_database(username, movie_name_link)
 
                     movie_poster_fetcher(link)
                     director, cast, story, total_rat = get_movie_info(link)
