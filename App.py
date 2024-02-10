@@ -7,6 +7,7 @@ import requests, io
 import PIL.Image
 from urllib.request import urlopen
 import psycopg2
+from streamlit import session_state
 
 st.set_page_config(
     page_title="Movie Recommender System",
@@ -42,6 +43,39 @@ def add_user_to_database(username, user_password):
         # st.write("User added successfully.")
     except psycopg2.Error as e:
         st.write("Error:", e)
+
+
+def save_movie_to_database(username, movie_title):
+    try:
+        dbname = "filmreco_database"
+        user = "postgres"
+        password = "1A2n3D4r5E6w7666postgres"
+        host = "localhost"
+        port = "5433"
+
+        conn = psycopg2.connect(dbname=dbname, user=user, password=password, host=host, port=port)
+        cur = conn.cursor()
+
+        cur.execute("SELECT film_title FROM films WHERE username = %s", (username,))
+        existing_movies = cur.fetchone()
+
+        if existing_movies:
+            movies = existing_movies[0].split(", ")
+            if movie_title not in movies:
+                movies.append(movie_title)
+                updated_movies = ", ".join(movies)
+                cur.execute("UPDATE films SET film_title = %s WHERE username = %s", (updated_movies, username))
+        else:
+            cur.execute("INSERT INTO films (username, film_title) VALUES (%s, %s)", (username, movie_title))
+
+        conn.commit()
+
+        cur.close()
+        conn.close()
+    except psycopg2.Error as e:
+        st.write("Error:", e)
+
+
 
 
 with open('./Data/movie_data.json', 'r+', encoding='utf-8') as f:
@@ -137,7 +171,7 @@ def signup_form():
     return new_username, new_password, signup_button
 
 
-def show_recommendations():
+def show_recommendations(username):
     img1 = Image.open('./meta/logo3.jpg')
     img1 = img1.resize((700, 205), )
     st.image(img1, use_column_width=False)
@@ -193,6 +227,10 @@ def show_recommendations():
                 for movie, link, ratings in table:
                     c += 1
                     st.markdown(f"({c})[ {movie}]({link})")
+
+                    if st.button(f"Save Movie: {movie}"):
+                        save_movie_to_database(username, movie)
+
                     movie_poster_fetcher(link)
                     director, cast, story, total_rat = get_movie_info(link)
                     st.markdown(director)
@@ -264,13 +302,15 @@ def run():
             cur.close()
             conn.close()
             if existing_username:
+                session_state.username = username
+                session_state.user_logged_in = True
                 st.success(f"Logged in as {username}")
                 st.sidebar.write(
                     f"<span style='color: blue; font-weight: bold; font-size: 20px;'>User:</span> <span style='color: "
                     f"blue; font-weight: bold; font-size: 20px;'>{username}</span>",
                     unsafe_allow_html=True)
 
-                show_recommendations()
+                show_recommendations(username)
             else:
                 st.error("Invalid username or password. Please refresh the page and enter the correct information.")
     elif mode == "Sign up":
@@ -291,6 +331,8 @@ def run():
             if existing_username:
                 st.error("Username already exists. Please refresh the page and choose another username.")
             else:
+                session_state.username = new_username
+                session_state.user_logged_in = True
                 add_user_to_database(new_username, new_password)
                 st.success(f"Account created for {new_username}")
                 st.sidebar.write(
@@ -298,7 +340,13 @@ def run():
                     f"blue; font-weight: bold; font-size: 20px;'>{new_username}</span>",
                     unsafe_allow_html=True)
 
-                show_recommendations()
+                show_recommendations(new_username)
 
 
-run()
+if 'user_logged_in' not in session_state:
+    session_state.user_logged_in = False
+
+if session_state.user_logged_in:
+    show_recommendations(session_state.username)
+else:
+    run()
