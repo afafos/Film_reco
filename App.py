@@ -76,7 +76,31 @@ def save_movie_to_database(username, movie_title):
         st.write("Error:", e)
 
 
+def show_saved_films(username):
+    try:
+        dbname = "filmreco_database"
+        user = "postgres"
+        password = "1A2n3D4r5E6w7666postgres"
+        host = "localhost"
+        port = "5433"
 
+        conn = psycopg2.connect(dbname=dbname, user=user, password=password, host=host, port=port)
+        cur = conn.cursor()
+
+        cur.execute("SELECT film_title FROM films WHERE username = %s", (username,))
+        saved_films = cur.fetchone()
+
+        if saved_films:
+            st.subheader("Saved Films")
+            for film in saved_films[0].split(", "):
+                st.write(film)
+        else:
+            st.write("No saved films found for this user.")
+
+        cur.close()
+        conn.close()
+    except psycopg2.Error as e:
+        st.error("Error fetching saved films:", e)
 
 with open('./Data/movie_data.json', 'r+', encoding='utf-8') as f:
     data = json.load(f)
@@ -172,6 +196,8 @@ def signup_form():
 
 
 def show_recommendations(username):
+    if st.button("Show saved films"):
+        show_saved_films(username)
     img1 = Image.open('./meta/logo3.jpg')
     img1 = img1.resize((700, 205), )
     st.image(img1, use_column_width=False)
