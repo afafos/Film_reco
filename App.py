@@ -272,7 +272,7 @@ def run():
 
                 show_recommendations()
             else:
-                st.error("Invalid username or password.")
+                st.error("Invalid username or password. Please refresh the page and enter the correct information.")
     elif mode == "Sign up":
         new_username, new_password, signup_button = signup_form()
         if signup_button:
@@ -289,7 +289,7 @@ def run():
             conn.close()
 
             if existing_username:
-                st.error("Username already exists. Please choose another username and refresh the page.")
+                st.error("Username already exists. Please refresh the page and choose another username.")
             else:
                 add_user_to_database(new_username, new_password)
                 st.success(f"Account created for {new_username}")
