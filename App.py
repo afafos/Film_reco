@@ -135,21 +135,7 @@ def signup_form():
     return new_username, new_password, signup_button
 
 
-def run():
-    st.sidebar.title("Account")
-    mode = st.sidebar.radio("Choose mode:", ("Log in", "Sign up"))
-
-    if mode == "Log in":
-        username, password, login_button = login_form()
-        if login_button:
-            st.success(f"Logged in as {username}")
-    elif mode == "Sign up":
-        new_username, new_password, signup_button = signup_form()
-        if signup_button:
-            add_user_to_database(new_username, new_password)
-            st.success(f"Account created for {new_username}")
-            st.sidebar.write(f"User: {new_username}")
-
+def show_recommendations():
     img1 = Image.open('./meta/logo3.jpg')
     img1 = img1.resize((700, 205), )
     st.image(img1, use_column_width=False)
@@ -255,6 +241,43 @@ def run():
                     st.markdown(story)
                     st.markdown(total_rat)
                     st.markdown('IMDB Rating: ' + str(ratings) + '⭐')
+
+
+def run():
+    st.sidebar.title("Account")
+    mode = st.sidebar.radio("Choose mode:", ("Log in", "Sign up"))
+
+    if mode == "Log in":
+        username, password, login_button = login_form()
+        if login_button:
+            st.success(f"Logged in as {username}")
+    elif mode == "Sign up":
+        new_username, new_password, signup_button = signup_form()
+        if signup_button:
+            dbname = "filmreco_database"
+            user = "postgres"
+            password = "1A2n3D4r5E6w7666postgres"
+            host = "localhost"
+            port = "5433"
+            conn = psycopg2.connect(dbname=dbname, user=user, password=password, host=host, port=port)
+            cur = conn.cursor()
+            # Проверяем уникальность имени пользователя
+            cur.execute("SELECT username FROM users WHERE username = %s", (new_username,))
+            existing_username = cur.fetchone()
+            cur.close()
+            conn.close()
+
+            if existing_username:
+                st.error("Username already exists. Please choose another username and refresh the page.")
+            else:
+                add_user_to_database(new_username, new_password)
+                st.success(f"Account created for {new_username}")
+                st.sidebar.write(
+                    f"<span style='color: blue; font-weight: bold; font-size: 20px;'>User:</span> <span style='color: "
+                    f"blue; font-weight: bold; font-size: 20px;'>{new_username}</span>",
+                    unsafe_allow_html=True)
+
+                show_recommendations()
 
 
 run()
