@@ -148,6 +148,7 @@ def run():
         if signup_button:
             add_user_to_database(new_username, new_password)
             st.success(f"Account created for {new_username}")
+            st.sidebar.write(f"User: {new_username}")
 
     img1 = Image.open('./meta/logo3.jpg')
     img1 = img1.resize((700, 205), )
